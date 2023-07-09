@@ -73,40 +73,50 @@ def transition_cost(prev, next, cost_fn='count'):
         raise ValueError(f"Unrecognized cost function: {cost_fn}")
 
 
-def transition(weights, available_weights, target):
+def get_transition_options(weights, available_weights, target):
     weights = sorted(weights)
-    print(weights, available_weights, target)
 
     weight_map = enumerate_ways_of_weights(weights + available_weights)
 
     target_options = weight_map[target]
 
-    print(target, target_options)
-
+    transition_options = []
     for target_option in target_options:
-        print(weights, target_option,
-              transition_cost(weights, target_option, 'count'),
-              transition_cost(weights, target_option, 'weight'))
+        transition_options.append((target_option, transition_cost(
+            weights, target_option, 'count'), transition_cost(weights, target_option, 'weight')))
+    return transition_options
 
 
 def make_transition_graph(weights, sequence):
 
     root_node = (())
-    nodes = [root_node]
-    nodes_by_weight = {0: root_node}
+    nodes = set([root_node])
+    nodes_by_weight = {0: set([root_node])}
 
     edges = []
 
-    for weight in sequence:
-        pass
+    for (prev_weight, next_weight) in zip([0] + sequence, sequence):
+        nodes_by_weight[next_weight] = set()
+        for prev_node in nodes_by_weight[prev_weight]:
+            available_weights = get_available_weights(prev_node, weights)
+            for (next_node, count_cost, weight_cost) in get_transition_options(
+                    prev_node, available_weights, next_weight):
+                nodes.add(next_node)
+                nodes_by_weight[next_weight].add(next_node)
+                edges.append((prev_node, next_node, count_cost, weight_cost))
+
+    return (sorted(list(nodes), key=lambda x: sum(x)),
+            edges,
+            {weight: sorted(list(nodes), key=lambda x: sum(x)) for (weight, nodes) in nodes_by_weight.items()})
 
 
 if __name__ == '__main__':
     source = [5, 10, 10, 10, 25, 25, 45, 45]
 
-    seq = [0, 15, 25, 30]
+    seq = [15, 25, 35, 55, 60]
 
-    # cur = [5, 10]
-    cur = []
+    (nodes, edges, nodes_by_weight) = make_transition_graph(source, seq)
 
-    transition(cur, get_available_weights(cur, source), 55)
+    print(nodes)
+    print(edges)
+    print(nodes_by_weight)
