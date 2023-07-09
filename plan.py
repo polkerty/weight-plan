@@ -172,4 +172,6 @@ if __name__ == '__main__':
         print(sum(edge[3] for edge in path), sum(edge[2]
               for edge in path), path)
         
-    
+    # print graph
+    for edge in edges:
+        print(f"{','.join(str(p) for p in edge[0])} {','.join(str(p) for p in edge[1])}")
