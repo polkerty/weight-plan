@@ -129,6 +129,12 @@ def enumerate_paths(nodes_by_weight, edges):
             for edge in edges_by_node[cur_weight]:
                 assert (sum(edge[0]) == cur_weight)
                 assert (sum(edge[1]) == next_weight)
+                if len(partial_path):
+                    # ensure the edges line up, like dominoes
+                    # TODO: graph nodes should really be representations, not total weights.
+                    last_edge = partial_path[-1]
+                    if last_edge[1] != edge[0]:
+                        continue
                 next_partial_path_queue.append(partial_path + (edge, ))
 
         partial_path_queue = next_partial_path_queue
@@ -152,6 +158,9 @@ if __name__ == '__main__':
     print("Total ways: ", len(all_paths))
     print("Sample way: ", all_paths[0])
 
+    for path in all_paths:
+        print("PATH", path)
+
     # Get best strategy
     print("Sequences that minimize number of plates moved:")
     for path in sorted(all_paths, key=lambda x: sum(edge[2] for edge in x))[:10]:
@@ -162,3 +171,5 @@ if __name__ == '__main__':
     for path in sorted(all_paths, key=lambda x: sum(edge[3] for edge in x))[:10]:
         print(sum(edge[3] for edge in path), sum(edge[2]
               for edge in path), path)
+        
+    
