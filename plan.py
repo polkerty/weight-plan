@@ -110,6 +110,32 @@ def make_transition_graph(weights, sequence):
             {weight: sorted(list(nodes), key=lambda x: sum(x)) for (weight, nodes) in nodes_by_weight.items()})
 
 
+def enumerate_paths(nodes_by_weight, edges):
+    sequence = sorted(list(nodes_by_weight.keys()))
+
+    edges_by_node = {}
+    for edge in edges:
+        node = sum(edge[0])
+        if node not in edges_by_node:
+            edges_by_node[node] = []
+        edges_by_node[node].append(edge)
+
+    partial_path_queue = [()]
+    for (cur_weight, next_weight) in zip(sequence, sequence[1:]):
+        next_partial_path_queue = []
+        for partial_path in partial_path_queue:
+            # Find edges from the current weight to the next weight.
+            # (all edges out from current weight should point to next weight)
+            for edge in edges_by_node[cur_weight]:
+                assert (sum(edge[0]) == cur_weight)
+                assert (sum(edge[1]) == next_weight)
+                next_partial_path_queue.append(partial_path + (edge, ))
+
+        partial_path_queue = next_partial_path_queue
+
+    return partial_path_queue
+
+
 if __name__ == '__main__':
     source = [5, 10, 10, 10, 25, 25, 45, 45]
 
@@ -120,3 +146,19 @@ if __name__ == '__main__':
     print(nodes)
     print(edges)
     print(nodes_by_weight)
+
+    all_paths = enumerate_paths(nodes_by_weight, edges)
+
+    print("Total ways: ", len(all_paths))
+    print("Sample way: ", all_paths[0])
+
+    # Get best strategy
+    print("Sequences that minimize number of plates moved:")
+    for path in sorted(all_paths, key=lambda x: sum(edge[2] for edge in x))[:10]:
+        print(sum(edge[2] for edge in path), sum(edge[3]
+              for edge in path), path)
+
+    print("Sequences that minimize total weight of plates moved:")
+    for path in sorted(all_paths, key=lambda x: sum(edge[3] for edge in x))[:10]:
+        print(sum(edge[3] for edge in path), sum(edge[2]
+              for edge in path), path)
